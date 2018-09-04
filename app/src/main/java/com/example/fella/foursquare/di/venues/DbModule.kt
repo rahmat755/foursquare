@@ -1,4 +1,4 @@
-package com.example.fella.foursquare.di.allvenues
+package com.example.fella.foursquare.di.venues
 
 import android.app.Application
 import android.arch.persistence.room.Room
@@ -7,7 +7,6 @@ import com.example.fella.foursquare.db.VenueDao
 import com.example.fella.foursquare.util.ActivityScope
 import dagger.Module
 import dagger.Provides
-import javax.inject.Singleton
 
 @Module
 class DbModule( mApplication: Application) {

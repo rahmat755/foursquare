@@ -1,7 +1,6 @@
-package com.example.fella.foursquare.di.detailvenues
+package com.example.fella.foursquare.di.venues.detailvenues
 
-import com.example.fella.foursquare.di.allvenues.AllVenuesModule
-import com.example.fella.foursquare.di.allvenues.DbModule
+import com.example.fella.foursquare.di.venues.DbModule
 import com.example.fella.foursquare.di.app.AppComponent
 import com.example.fella.foursquare.util.ActivityScope
 import com.example.fella.foursquare.view.DetailActivity

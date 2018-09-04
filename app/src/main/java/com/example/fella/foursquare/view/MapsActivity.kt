@@ -1,6 +1,5 @@
 package com.example.fella.foursquare.view
 
-import android.graphics.Point
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import com.example.fella.foursquare.R
@@ -11,7 +10,6 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.CameraUpdate
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {

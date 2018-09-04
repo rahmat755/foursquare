@@ -1,7 +1,6 @@
 package com.example.fella.foursquare.db
 
 import android.arch.persistence.room.TypeConverter
-import android.support.annotation.NonNull
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 

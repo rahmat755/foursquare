@@ -1,9 +1,6 @@
 package com.example.fella.foursquare.view
 
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Intent
-import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.Snackbar
@@ -14,22 +11,17 @@ import android.view.View
 import com.example.fella.foursquare.App
 import com.example.fella.foursquare.R
 import com.example.fella.foursquare.db.VenueItem
-import com.example.fella.foursquare.di.allvenues.AllVenuesModule
-import com.example.fella.foursquare.di.allvenues.DaggerAllVenuesComponent
-import com.example.fella.foursquare.di.allvenues.DbModule
-import com.example.fella.foursquare.di.detailvenues.DaggerDetailVenuesComponent
-import com.example.fella.foursquare.di.detailvenues.DetailVenueModule
+import com.example.fella.foursquare.di.venues.DbModule
+import com.example.fella.foursquare.di.venues.detailvenues.DaggerDetailVenuesComponent
+import com.example.fella.foursquare.di.venues.detailvenues.DetailVenueModule
 import com.example.fella.foursquare.presenter.DetailVenuesPresenter
 import com.example.fella.foursquare.presenter.MVPContract
 import com.example.fella.foursquare.util.isNetworkAvailable
-import com.example.fella.foursquare.viewmodel.VenuesViewModel
-import com.example.fella.foursquare.viewmodel.VenuesViewModelFactory
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipeline
 import javax.inject.Inject
 import kotlinx.android.synthetic.main.detail_activity.*
 import com.stfalcon.frescoimageviewer.ImageViewer
-import kotlinx.android.synthetic.main.activity_main.*
 
 
 class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
@@ -73,9 +65,6 @@ class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
     lateinit var venueId: String
     @Inject
     lateinit var presenter: DetailVenuesPresenter
-//    @Inject
-//    lateinit var viewModelFactory: VenuesViewModelFactory
-//    lateinit var model: VenuesViewModel
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
@@ -107,34 +96,6 @@ class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
             presenter.loadData(venueId)
         else
             presenter.loadData(venueId)
-
-//        model.showDetailVenuesProgressBar.observe(this, Observer {
-//            if (it!!)
-//                detail_progressbar.visibility = View.VISIBLE
-//            else {
-//                detail_progressbar.visibility = View.GONE
-//            }
-//        })
-//        model.getVenueDetails(venueId).observe(this, Observer { venueItem ->
-//            venue_detail_address.text = venueItem?.address
-//            venue_detail_name.text = venueItem?.name
-//            venue_datail_rating.text = venueItem?.tips
-//            venue_detail_photo.setImageURI(venueItem?.bestPhoto)
-//            venue_detail_photo.setOnClickListener { view ->
-//                ImageViewer.Builder(view.context, venueItem?.photos)
-//                        .setStartPosition(0)
-//                        .show()
-//            }
-//            show_on_map_button.setOnClickListener {
-//                val intent = Intent(this, MapsActivity::class.java).apply {
-//                    putExtra("lat", venueItem?.lat.toString())
-//                    putExtra("lng", venueItem?.lng.toString())
-//                    putExtra("name", venueItem?.name)
-//                }
-//                startActivity(intent)
-//            }
-//        })
-
 
     }
 }

@@ -1,8 +1,7 @@
-package com.example.fella.foursquare.di.detailvenues
+package com.example.fella.foursquare.di.venues.detailvenues
 
 import com.example.fella.foursquare.model.FoursquareApi
 import com.example.fella.foursquare.model.repository.FoursquareRepo
-import com.example.fella.foursquare.presenter.AllVenuesPresenter
 import com.example.fella.foursquare.presenter.DetailVenuesPresenter
 import com.example.fella.foursquare.presenter.MVPContract
 import com.example.fella.foursquare.util.ActivityScope

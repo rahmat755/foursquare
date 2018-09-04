@@ -30,9 +30,9 @@ import com.example.fella.foursquare.App
 import com.example.fella.foursquare.presenter.MVPContract
 import com.example.fella.foursquare.R
 import com.example.fella.foursquare.db.VenueItem
-import com.example.fella.foursquare.di.allvenues.AllVenuesModule
-import com.example.fella.foursquare.di.allvenues.DaggerAllVenuesComponent
-import com.example.fella.foursquare.di.allvenues.DbModule
+import com.example.fella.foursquare.di.venues.allvenues.AllVenuesModule
+import com.example.fella.foursquare.di.venues.allvenues.DaggerAllVenuesComponent
+import com.example.fella.foursquare.di.venues.DbModule
 import com.example.fella.foursquare.presenter.AllVenuesPresenter
 import com.example.fella.foursquare.util.EqualSpacingItemDecoration
 import com.facebook.drawee.backends.pipeline.Fresco
@@ -75,7 +75,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     }
 
     override fun onItemSelected(id: String?) {
-//        model._venueId.value = id
         val intent = Intent(this, DetailActivity::class.java)
         intent.putExtra("venueId", id)
         startActivity(intent)
@@ -84,8 +83,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     @Inject
     lateinit var venuesPresenter: AllVenuesPresenter
-    //    lateinit var viewModelFactory: VenuesViewModelFactory
-//    lateinit var model: VenuesViewModel
     private var mGoogleApiClient: GoogleApiClient? = null
     private var mLocation: Location? = null
     private var locationManager: LocationManager? = null
@@ -94,11 +91,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     var longitude: Double? = null
     lateinit var currentLocation: Location
     private val mLayoutManager = LinearLayoutManager(this)
-
-    fun showError(msg: String) {
-        Snackbar.make(venues_recyclerview, msg, Snackbar.LENGTH_INDEFINITE)
-                .setAction("Повторить попытку") { getVenues() }.show()
-    }
 
     override fun onConnected(bundle: Bundle?) {
         if (ActivityCompat.checkSelfPermission(this, ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
@@ -195,7 +187,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 .build()
         currentLocation = Location("")
 
-        venuesAdapter = VenuesAdapter(this, currentLocation, this)
+        venuesAdapter = VenuesAdapter(currentLocation, this)
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         DaggerAllVenuesComponent.builder()
                 .appComponent(App.appComponent)
@@ -203,32 +195,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 .allVenuesModule(AllVenuesModule(this))
                 .build()
                 .inject(this)
-//        model = ViewModelProviders.of(this, viewModelFactory).get(VenuesViewModel::class.java)
-//
-//        model.getVenuesList(latitude.toString(), longitude.toString()).observe(this, Observer {
-//            Log.d("location", mLocation.toString())
-//            venuesAdapter.removeAllItems()
-//            venuesAdapter.addItems(it!!)
-//        })
-//        model.showAllVenuesProgressBar.observe(this, Observer {
-//            if (it!!)
-//                progressBar.visibility = View.VISIBLE
-//            else {
-//                swipe_refresh_layout.isRefreshing = false
-//                progressBar.visibility = View.GONE
-//            }
-//        })
-//        model.location.observe(this, Observer {
-//            getVenues()
-//        })
-//        model.showNoDataError.observe(this, Observer {
-//            no_data_textview.visibility = View.VISIBLE
-//        })
-//        model.showError.observe(this, Observer { event ->
-//            showError(event?.getContentIfNotHandled()!!)
-//            if (swipe_refresh_layout.isRefreshing)
-//                swipe_refresh_layout.isRefreshing = false
-//        })
+
         venues_recyclerview.apply {
             layoutManager = mLayoutManager
             adapter = venuesAdapter
@@ -243,7 +210,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         no_data_textview.visibility = View.GONE
         currentLocation.longitude = longitude!!
         currentLocation.latitude = latitude!!
-        venuesAdapter = VenuesAdapter(this, currentLocation, this)
+        venuesAdapter = VenuesAdapter(currentLocation, this)
         venues_recyclerview.adapter = venuesAdapter
         venuesPresenter.loadData(latitude.toString(), longitude.toString())
         venuesAdapter.notifyDataSetChanged()

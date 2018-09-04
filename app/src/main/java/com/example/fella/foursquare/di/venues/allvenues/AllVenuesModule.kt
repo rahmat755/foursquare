@@ -1,4 +1,4 @@
-package com.example.fella.foursquare.di.allvenues
+package com.example.fella.foursquare.di.venues.allvenues
 
 import com.example.fella.foursquare.model.FoursquareApi
 import com.example.fella.foursquare.model.repository.FoursquareRepo
@@ -11,7 +11,6 @@ import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-import javax.inject.Singleton
 
 
 @Module
