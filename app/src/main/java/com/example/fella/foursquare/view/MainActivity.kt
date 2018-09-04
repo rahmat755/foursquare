@@ -15,8 +15,6 @@ import com.google.android.gms.location.LocationServices
 import android.content.pm.PackageManager
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
-import android.arch.lifecycle.Observer
-import android.arch.lifecycle.ViewModelProviders
 import android.content.Context
 import android.content.Intent
 import android.support.v4.app.ActivityCompat
@@ -29,11 +27,14 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import com.example.fella.foursquare.App
+import com.example.fella.foursquare.presenter.MVPContract
 import com.example.fella.foursquare.R
+import com.example.fella.foursquare.db.VenueItem
+import com.example.fella.foursquare.di.allvenues.AllVenuesModule
+import com.example.fella.foursquare.di.allvenues.DaggerAllVenuesComponent
+import com.example.fella.foursquare.di.allvenues.DbModule
+import com.example.fella.foursquare.presenter.AllVenuesPresenter
 import com.example.fella.foursquare.util.EqualSpacingItemDecoration
-import com.example.fella.foursquare.util.isNetworkAvailable
-import com.example.fella.foursquare.viewmodel.VenuesViewModel
-import com.example.fella.foursquare.viewmodel.VenuesViewModelFactory
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipeline
 
@@ -41,18 +42,50 @@ private const val PERMISSION_REQUEST_CODE = 123
 
 class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
-        LocationListener, VenuesAdapter.OnViewSelectedListener {
+        LocationListener, VenuesAdapter.OnViewSelectedListener, MVPContract.AllVenuesView {
+    override fun showToast(msg: String) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun displayError(e: Throwable, func: () -> Unit) {
+        Snackbar.make(venues_recyclerview, e.localizedMessage, Snackbar.LENGTH_INDEFINITE)
+                .setAction("Повторить попытку") { func() }.show()
+        if (swipe_refresh_layout.isRefreshing)
+            swipe_refresh_layout.isRefreshing = false
+    }
+
+    override fun displayNoDataError() {
+        no_data_textview.visibility = View.VISIBLE
+    }
+
+    override fun displayData(venueList: ArrayList<VenueItem>) {
+        venuesAdapter.removeAllItems()
+        venuesAdapter.addItems(venueList)
+    }
+
+
+    override fun showProgressBar(flag: Boolean) {
+        if (flag)
+            progressBar.visibility = View.VISIBLE
+        else {
+            if (swipe_refresh_layout.isRefreshing){
+                swipe_refresh_layout.isRefreshing = false}
+            progressBar.visibility = View.GONE
+        }
+    }
+
     override fun onItemSelected(id: String?) {
-        Log.d("id", id)
-        model._venueId.value = id
+//        model._venueId.value = id
         val intent = Intent(this, DetailActivity::class.java)
+        intent.putExtra("venueId", id)
         startActivity(intent)
     }
 
 
     @Inject
-    lateinit var viewModelFactory: VenuesViewModelFactory
-    lateinit var model: VenuesViewModel
+    lateinit var venuesPresenter: AllVenuesPresenter
+    //    lateinit var viewModelFactory: VenuesViewModelFactory
+//    lateinit var model: VenuesViewModel
     private var mGoogleApiClient: GoogleApiClient? = null
     private var mLocation: Location? = null
     private var locationManager: LocationManager? = null
@@ -83,7 +116,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         if (mLocation != null) {
             latitude = mLocation?.latitude
             longitude = mLocation?.longitude
-            model._location.value = mLocation
             getVenues()
 
         } else {
@@ -116,8 +148,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         Log.i("1", "Connection failed. Error: " + connectionResult.errorCode)
     }
 
-    public override fun onStart() {
-        super.onStart()
+    public override fun onResume() {
+        super.onResume()
         mGoogleApiClient?.connect()
     }
 
@@ -143,12 +175,14 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.clear_cache) {
-            val imagePipeline : ImagePipeline = Fresco.getImagePipeline()
+            val imagePipeline: ImagePipeline = Fresco.getImagePipeline()
             imagePipeline.clearCaches()
-            model.dropData()
+//            model.dropData()
+            venuesAdapter.removeAllItems()
         }
         return true
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -163,33 +197,38 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
         venuesAdapter = VenuesAdapter(this, currentLocation, this)
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        App.appComponent.injectMainActivity(this)
-        model = ViewModelProviders.of(this, viewModelFactory).get(VenuesViewModel::class.java)
-
-        model.getVenuesList().observe(this, Observer {
-            Log.d("location", mLocation.toString())
-            venuesAdapter.removeAllItems()
-            venuesAdapter.addItems(it!!)
-        })
-        model.showAllVenuesProgressBar.observe(this, Observer {
-            if (it!!)
-                progressBar.visibility = View.VISIBLE
-            else {
-                swipe_refresh_layout.isRefreshing = false
-                progressBar.visibility = View.GONE
-            }
-        })
-        model.location.observe(this, Observer {
-            getVenues()
-        })
-        model.showNoDataError.observe(this, Observer {
-            no_data_textview.visibility = View.VISIBLE
-        })
-        model.showError.observe(this, Observer { event ->
-            showError(event?.getContentIfNotHandled()!!)
-            if (swipe_refresh_layout.isRefreshing)
-                swipe_refresh_layout.isRefreshing = false
-        })
+        DaggerAllVenuesComponent.builder()
+                .appComponent(App.appComponent)
+                .dbModule(DbModule(application))
+                .allVenuesModule(AllVenuesModule(this))
+                .build()
+                .inject(this)
+//        model = ViewModelProviders.of(this, viewModelFactory).get(VenuesViewModel::class.java)
+//
+//        model.getVenuesList(latitude.toString(), longitude.toString()).observe(this, Observer {
+//            Log.d("location", mLocation.toString())
+//            venuesAdapter.removeAllItems()
+//            venuesAdapter.addItems(it!!)
+//        })
+//        model.showAllVenuesProgressBar.observe(this, Observer {
+//            if (it!!)
+//                progressBar.visibility = View.VISIBLE
+//            else {
+//                swipe_refresh_layout.isRefreshing = false
+//                progressBar.visibility = View.GONE
+//            }
+//        })
+//        model.location.observe(this, Observer {
+//            getVenues()
+//        })
+//        model.showNoDataError.observe(this, Observer {
+//            no_data_textview.visibility = View.VISIBLE
+//        })
+//        model.showError.observe(this, Observer { event ->
+//            showError(event?.getContentIfNotHandled()!!)
+//            if (swipe_refresh_layout.isRefreshing)
+//                swipe_refresh_layout.isRefreshing = false
+//        })
         venues_recyclerview.apply {
             layoutManager = mLayoutManager
             adapter = venuesAdapter
@@ -206,11 +245,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         currentLocation.latitude = latitude!!
         venuesAdapter = VenuesAdapter(this, currentLocation, this)
         venues_recyclerview.adapter = venuesAdapter
-        if (this.isNetworkAvailable())
-            model.loadVenues(latitude.toString(), longitude.toString())
-        else
-            model.loadVenuesFromDb()
-    }
+        venuesPresenter.loadData(latitude.toString(), longitude.toString())
+        venuesAdapter.notifyDataSetChanged()
+}
 
     override fun onBackPressed() {
         super.onBackPressed()

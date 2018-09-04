@@ -1,4 +1,4 @@
-package com.example.fella.foursquare.view
+    package com.example.fella.foursquare.view
 
 import android.Manifest
 import android.content.Intent

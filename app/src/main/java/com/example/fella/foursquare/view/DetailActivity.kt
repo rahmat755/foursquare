@@ -6,12 +6,21 @@ import android.content.Intent
 import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.design.widget.Snackbar
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import com.example.fella.foursquare.App
 import com.example.fella.foursquare.R
+import com.example.fella.foursquare.db.VenueItem
+import com.example.fella.foursquare.di.allvenues.AllVenuesModule
+import com.example.fella.foursquare.di.allvenues.DaggerAllVenuesComponent
+import com.example.fella.foursquare.di.allvenues.DbModule
+import com.example.fella.foursquare.di.detailvenues.DaggerDetailVenuesComponent
+import com.example.fella.foursquare.di.detailvenues.DetailVenueModule
+import com.example.fella.foursquare.presenter.DetailVenuesPresenter
+import com.example.fella.foursquare.presenter.MVPContract
 import com.example.fella.foursquare.util.isNetworkAvailable
 import com.example.fella.foursquare.viewmodel.VenuesViewModel
 import com.example.fella.foursquare.viewmodel.VenuesViewModelFactory
@@ -20,13 +29,53 @@ import com.facebook.imagepipeline.core.ImagePipeline
 import javax.inject.Inject
 import kotlinx.android.synthetic.main.detail_activity.*
 import com.stfalcon.frescoimageviewer.ImageViewer
+import kotlinx.android.synthetic.main.activity_main.*
 
 
-class DetailActivity : AppCompatActivity() {
+class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
+    override fun displayData(venue: VenueItem) {
+        venue_detail_address.text = venue.address
+        venue_detail_name.text = venue.name
+        venue_datail_rating.text = venue.tips
+        venue_detail_photo.setImageURI(venue.bestPhoto)
+        venue_detail_photo.setOnClickListener { view ->
+            ImageViewer.Builder(view.context, venue.photos)
+                    .setStartPosition(0)
+                    .show()
+        }
+        show_on_map_button.setOnClickListener {
+            val intent = Intent(this, MapsActivity::class.java).apply {
+                putExtra("lat", venue.lat.toString())
+                putExtra("lng", venue.lng.toString())
+                putExtra("name", venue.name)
+            }
+            startActivity(intent)
+        }
+    }
+
+    override fun displayError(e: Throwable, func: () -> Unit) {
+        Snackbar.make(this.show_on_map_button, e.localizedMessage, Snackbar.LENGTH_INDEFINITE)
+                .setAction("Повторить попытку") { func() }.show()
+    }
+
+    override fun showToast(msg: String) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
+
+    override fun showProgressBar(flag: Boolean) {
+        if (flag)
+            detail_progressbar.visibility = View.VISIBLE
+        else {
+            detail_progressbar.visibility = View.GONE
+        }
+    }
+
     lateinit var venueId: String
     @Inject
-    lateinit var viewModelFactory: VenuesViewModelFactory
-    lateinit var model: VenuesViewModel
+    lateinit var presenter: DetailVenuesPresenter
+//    @Inject
+//    lateinit var viewModelFactory: VenuesViewModelFactory
+//    lateinit var model: VenuesViewModel
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
@@ -37,7 +86,7 @@ class DetailActivity : AppCompatActivity() {
         if (item.itemId == R.id.clear_cache) {
             val imagePipeline : ImagePipeline = Fresco.getImagePipeline()
             imagePipeline.clearCaches()
-            model.dropData()
+            presenter.dropData()
         }
         return true
     }
@@ -45,40 +94,46 @@ class DetailActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.detail_activity)
         setSupportActionBar(this.findViewById(R.id.toolbar_main))
-        App.appComponent.injectDetailActivity(this)
-        model = ViewModelProviders.of(this, viewModelFactory).get(VenuesViewModel::class.java)
-        venueId = model._venueId.value!!
+        DaggerDetailVenuesComponent.builder()
+                .appComponent(App.appComponent)
+                .dbModule(DbModule(application))
+                .detailVenueModule(DetailVenueModule(this))
+                .build()
+                .inject(this)
+        venueId = intent.getStringExtra("venueId")
         Log.d("id", venueId)
+
         if (this.isNetworkAvailable())
-            model.loadVenueDetailInfo(venueId)
+            presenter.loadData(venueId)
         else
-            model.loadVenueDetailFromDb(venueId)
-        model.showDetailVenuesProgressBar.observe(this, Observer {
-            if (it!!)
-                detail_progressbar.visibility = View.VISIBLE
-            else {
-                detail_progressbar.visibility = View.GONE
-            }
-        })
-        model.getVenueDetails().observe(this, Observer { venueItem ->
-            venue_detail_address.text = venueItem?.address
-            venue_detail_name.text = venueItem?.name
-            venue_datail_rating.text = venueItem?.tips
-            venue_detail_photo.setImageURI(venueItem?.bestPhoto)
-            venue_detail_photo.setOnClickListener { view ->
-                ImageViewer.Builder(view.context, venueItem?.photos)
-                        .setStartPosition(0)
-                        .show()
-            }
-            show_on_map_button.setOnClickListener {
-                val intent = Intent(this, MapsActivity::class.java).apply {
-                    putExtra("lat", venueItem?.lat)
-                    putExtra("lng", venueItem?.lng)
-                    putExtra("name", venueItem?.name)
-                }
-                startActivity(intent)
-            }
-        })
+            presenter.loadData(venueId)
+
+//        model.showDetailVenuesProgressBar.observe(this, Observer {
+//            if (it!!)
+//                detail_progressbar.visibility = View.VISIBLE
+//            else {
+//                detail_progressbar.visibility = View.GONE
+//            }
+//        })
+//        model.getVenueDetails(venueId).observe(this, Observer { venueItem ->
+//            venue_detail_address.text = venueItem?.address
+//            venue_detail_name.text = venueItem?.name
+//            venue_datail_rating.text = venueItem?.tips
+//            venue_detail_photo.setImageURI(venueItem?.bestPhoto)
+//            venue_detail_photo.setOnClickListener { view ->
+//                ImageViewer.Builder(view.context, venueItem?.photos)
+//                        .setStartPosition(0)
+//                        .show()
+//            }
+//            show_on_map_button.setOnClickListener {
+//                val intent = Intent(this, MapsActivity::class.java).apply {
+//                    putExtra("lat", venueItem?.lat.toString())
+//                    putExtra("lng", venueItem?.lng.toString())
+//                    putExtra("name", venueItem?.name)
+//                }
+//                startActivity(intent)
+//            }
+//        })
 
 
     }

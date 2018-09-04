@@ -10,5 +10,5 @@ import android.arch.persistence.room.TypeConverters
 @Database(entities = arrayOf(VenueItem::class), version = 1, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun userDao(): VenueDao
+    abstract fun venuesDao(): VenueDao
 }

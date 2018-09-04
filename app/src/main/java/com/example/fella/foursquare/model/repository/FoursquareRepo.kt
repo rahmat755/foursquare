@@ -4,13 +4,13 @@ import android.util.Log
 import com.example.fella.foursquare.db.VenueDao
 import com.example.fella.foursquare.model.FoursquareApi
 import com.example.fella.foursquare.db.VenueItem
+import com.example.fella.foursquare.util.ActivityScope
 import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 import javax.inject.Singleton
 
 
-@Singleton
 class FoursquareRepo @Inject constructor(val api: FoursquareApi, val dao: VenueDao) {
     fun getVenuesFromApi(lat: String, lng: String): Observable<ArrayList<VenueItem>> {
         return api.getVenues("$lat,$lng")

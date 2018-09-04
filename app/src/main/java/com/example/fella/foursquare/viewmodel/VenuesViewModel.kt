@@ -18,9 +18,9 @@ import javax.inject.Inject
 
 class VenuesViewModel @Inject constructor(var repository: FoursquareRepo) : ViewModel() {
     private val compositeDisposable = CompositeDisposable()
-    var venuesList: MutableLiveData<ArrayList<VenueItem>> = MutableLiveData()
+    var venuesList: MutableLiveData<ArrayList<VenueItem>>? = null
     var _location: MutableLiveData<Location> = MutableLiveData()
-    var venueDetail: MutableLiveData<VenueItem> = MutableLiveData()
+    var venueDetail: MutableLiveData<VenueItem>? = null
     private val _showError = MutableLiveData<Event<String>>()
     private val _showMessage = MutableLiveData<Event<String>>()
     private val _showNoDataError = MutableLiveData<Event<String>>()
@@ -42,12 +42,23 @@ class VenuesViewModel @Inject constructor(var repository: FoursquareRepo) : View
     val showDetailVenuesProgressBar: LiveData<Boolean>
         get() = _showDetailVenueProgressBar
 
-    fun getVenuesList(): LiveData<ArrayList<VenueItem>> {
-        return venuesList
+    fun getVenuesList(lat: String, lng: String): LiveData<ArrayList<VenueItem>> {
+        return if (venuesList == null) {
+            Log.d("LOAD VENUES", lat)
+            venuesList = MutableLiveData()
+            loadVenues(lat, lng)
+            venuesList!!
+        } else
+            venuesList!!
     }
 
-    fun getVenueDetails(): LiveData<VenueItem> {
-        return venueDetail
+    fun getVenueDetails(id:String): LiveData<VenueItem> {
+        return if (venueDetail == null) {
+            venueDetail = MutableLiveData()
+            loadVenueDetailInfo(id)
+            venueDetail!!
+        } else
+            venueDetail!!
     }
 
     fun dropData() {
@@ -67,7 +78,7 @@ class VenuesViewModel @Inject constructor(var repository: FoursquareRepo) : View
                         .timeout(10000, TimeUnit.MILLISECONDS)
                         .subscribe(
                                 {
-                                    venuesList.postValue(ArrayList(it))
+                                    venuesList?.postValue(ArrayList(it))
                                     _showAllVenuesProgressBar.postValue(false)
                                 },
                                 {
@@ -84,7 +95,7 @@ class VenuesViewModel @Inject constructor(var repository: FoursquareRepo) : View
                         .observeOn(AndroidSchedulers.mainThread())
                         .subscribe(
                                 {
-                                    venueDetail.postValue(it)
+                                    venueDetail?.postValue(it)
                                     _showDetailVenueProgressBar.postValue(false)
                                 },
                                 {
@@ -102,7 +113,7 @@ class VenuesViewModel @Inject constructor(var repository: FoursquareRepo) : View
                         .debounce(400, TimeUnit.MILLISECONDS)
                         .subscribe(
                                 {
-                                    venuesList.postValue(ArrayList(it))
+                                    venuesList?.postValue(ArrayList(it))
                                     _showAllVenuesProgressBar.postValue(false)
                                 },
                                 {
@@ -120,7 +131,7 @@ class VenuesViewModel @Inject constructor(var repository: FoursquareRepo) : View
                         .debounce(400, TimeUnit.MILLISECONDS)
                         .subscribe(
                                 {
-                                    venueDetail.postValue(it)
+                                    venueDetail?.postValue(it)
                                     _showDetailVenueProgressBar.postValue(false)
                                 },
                                 {
