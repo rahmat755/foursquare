@@ -16,11 +16,13 @@ import android.content.pm.PackageManager
 import android.Manifest.permission.ACCESS_COARSE_LOCATION
 import android.Manifest.permission.ACCESS_FINE_LOCATION
 import android.content.Context
+import android.content.DialogInterface
 import android.content.Intent
 import android.support.v4.app.ActivityCompat
 import com.google.android.gms.location.LocationRequest
 import android.location.LocationManager
 import android.support.design.widget.Snackbar
+import android.support.v7.app.AlertDialog
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -29,6 +31,7 @@ import android.widget.Toast
 import com.example.fella.foursquare.App
 import com.example.fella.foursquare.presenter.MVPContract
 import com.example.fella.foursquare.R
+import com.example.fella.foursquare.R.id.no_data_textview
 import com.example.fella.foursquare.db.VenueItem
 import com.example.fella.foursquare.di.venues.allvenues.AllVenuesModule
 import com.example.fella.foursquare.di.venues.allvenues.DaggerAllVenuesComponent
@@ -60,7 +63,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
 
     override fun displayData(venueList: ArrayList<VenueItem>) {
         venuesAdapter.removeAllItems()
-        venuesAdapter.addItems(venueList)
+        venuesAdapter.addItems(venueList, currentLocation)
     }
 
 
@@ -85,7 +88,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     lateinit var venuesPresenter: AllVenuesPresenter
     private var mGoogleApiClient: GoogleApiClient? = null
     private var mLocation: Location? = null
-    private var locationManager: LocationManager? = null
     private var mLocationRequest: LocationRequest? = null
     private var latitude: Double? = null
     private var longitude: Double? = null
@@ -184,6 +186,11 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         setContentView(R.layout.activity_main)
         val itemDecoration = EqualSpacingItemDecoration(16, 1)
         setSupportActionBar(this.findViewById(R.id.toolbar_main))
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+
+        if (!locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)) {
+            showGPSDisabledAlertToUser()
+        }
         mGoogleApiClient = GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -191,8 +198,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 .build()
         currentLocation = Location("")
 
-        venuesAdapter = VenuesAdapter(currentLocation, this)
-        locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        venuesAdapter = VenuesAdapter( this)
         DaggerAllVenuesComponent.builder()
                 .appComponent(App.appComponent)
                 .dbModule(DbModule(application))
@@ -209,13 +215,24 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             getVenues()
         }
     }
-
+    private fun showGPSDisabledAlertToUser(){
+        val builder = AlertDialog.Builder(this@MainActivity)
+        builder.setMessage("GPS is disabled in your device. Would you like to enable it?")
+        builder.setPositiveButton("Goto Settings Page To Enable GPS"){dialog, which ->
+             val callGPSSettingIntent =  Intent(
+                android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            startActivity(callGPSSettingIntent)
+        }
+        builder.setNegativeButton("Cancel"){ dialog, _ ->
+            dialog.cancel()
+        }
+        val dialog: AlertDialog = builder.create()
+        dialog.show()
+}
     private fun getVenues() {
         no_data_textview.visibility = View.GONE
         currentLocation.longitude = longitude!!
         currentLocation.latitude = latitude!!
-        venuesAdapter = VenuesAdapter(currentLocation, this)
-        venues_recyclerview.adapter = venuesAdapter
         venuesPresenter.loadData(latitude.toString(), longitude.toString())
         venuesAdapter.notifyDataSetChanged()
 }

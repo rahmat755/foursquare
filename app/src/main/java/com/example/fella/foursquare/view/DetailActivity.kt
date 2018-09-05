@@ -33,8 +33,9 @@ class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
         venue_detail_address.text = venue.address
         venue_detail_name.text = venue.name
         venue_datail_rating.text = venue.tips
-        venue_detail_photo.hierarchy.setFailureImage(R.drawable.ic_baseline_report_problem_24px)
+
         venue_detail_photo.setImageURI(venue.bestPhoto)
+        venue_detail_photo.hierarchy.setFailureImage(R.drawable.ic_baseline_report_problem_24px)
         if (venue.photos != null)
             venue_detail_photo.setOnClickListener { view ->
                 ImageViewer.Builder(view.context, venue.photos)
@@ -98,11 +99,6 @@ class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
                 .build()
                 .inject(this)
         venueId = intent.getStringExtra("venueId")
-
-        if (this.isNetworkAvailable())
-            presenter.loadData(venueId)
-        else
-            presenter.loadData(venueId)
-
+        presenter.loadData(venueId)
     }
 }

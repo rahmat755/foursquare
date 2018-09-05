@@ -11,7 +11,8 @@ import com.example.fella.foursquare.util.inflate
 import com.example.fella.foursquare.util.loadImg
 import com.facebook.drawee.view.SimpleDraweeView
 
-class VenuesAdapter(private val myLoc: Location, private val viewActions: OnViewSelectedListener) : RecyclerView.Adapter<VenuesAdapter.VenuesViewHolder>() {
+class VenuesAdapter(private val viewActions: OnViewSelectedListener) : RecyclerView.Adapter<VenuesAdapter.VenuesViewHolder>() {
+    lateinit var myLoc: Location
     interface OnViewSelectedListener {
         fun onItemSelected(id: String?)
     }
@@ -26,8 +27,8 @@ class VenuesAdapter(private val myLoc: Location, private val viewActions: OnView
     override fun onBindViewHolder(holder: VenuesViewHolder, position: Int) {
         holder.venueAddress?.text = venuesItems[position].address
         holder.venueName?.text = venuesItems[position].name
-        holder.venueIcon?.hierarchy?.setFailureImage(R.drawable.ic_baseline_report_problem_24px)
         holder.venueIcon?.loadImg(venuesItems[position].icon)
+        holder.venueIcon?.hierarchy?.setFailureImage(R.drawable.ic_baseline_report_problem_24px)
         val destination = Location("")
         destination.latitude = venuesItems[position].lat
         destination.longitude = venuesItems[position].lng
@@ -38,7 +39,8 @@ class VenuesAdapter(private val myLoc: Location, private val viewActions: OnView
     }
 
 
-    fun addItems(items: ArrayList<VenueItem>) {
+    fun addItems(items: ArrayList<VenueItem>, mLoc: Location) {
+        myLoc=mLoc
         previousPosition = venuesItems.size
         venuesItems.addAll(items)
         notifyDataSetChanged()
