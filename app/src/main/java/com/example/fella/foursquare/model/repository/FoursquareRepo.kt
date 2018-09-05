@@ -26,7 +26,7 @@ class FoursquareRepo @Inject constructor(val api: FoursquareApi, val dao: VenueD
                                         address = it.location?.address ?: "",
                                         lat = it.location?.lat!!,
                                         lng = it.location?.lng!!,
-                                        icon = icon ?: "",
+                                        icon = icon,
                                         photos = null,
                                         bestPhoto = null,
                                         tips = null

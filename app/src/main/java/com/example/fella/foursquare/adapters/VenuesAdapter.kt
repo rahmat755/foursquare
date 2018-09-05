@@ -26,7 +26,8 @@ class VenuesAdapter(private val myLoc: Location, private val viewActions: OnView
     override fun onBindViewHolder(holder: VenuesViewHolder, position: Int) {
         holder.venueAddress?.text = venuesItems[position].address
         holder.venueName?.text = venuesItems[position].name
-        holder.venueIcon?.loadImg( venuesItems[position].icon)
+        holder.venueIcon?.hierarchy?.setFailureImage(R.drawable.ic_baseline_report_problem_24px)
+        holder.venueIcon?.loadImg(venuesItems[position].icon)
         val destination = Location("")
         destination.latitude = venuesItems[position].lat
         destination.longitude = venuesItems[position].lng

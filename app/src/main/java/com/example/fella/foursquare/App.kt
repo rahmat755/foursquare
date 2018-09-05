@@ -15,10 +15,10 @@ class App : Application() {
         super.onCreate()
         appComponent= DaggerAppComponent.builder().appModule(AppModule(this)).build()
         Fresco.initialize(this)
+
     }
 
     companion object {
         lateinit var appComponent: AppComponent
-        lateinit var state: Parcelable
     }
 }

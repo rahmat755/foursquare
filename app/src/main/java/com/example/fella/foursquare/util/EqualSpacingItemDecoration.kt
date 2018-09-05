@@ -19,7 +19,6 @@ class EqualSpacingItemDecoration @JvmOverloads constructor(private val spacing: 
                                        position: Int,
                                        itemCount: Int) {
 
-        // Resolve display mode automatically
         if (displayMode == -1) {
             displayMode = resolveDisplayMode(layoutManager)
         }
@@ -56,8 +55,8 @@ class EqualSpacingItemDecoration @JvmOverloads constructor(private val spacing: 
 
     companion object {
 
-        val HORIZONTAL = 0
-        val VERTICAL = 1
-        val GRID = 2
+        const val HORIZONTAL = 0
+        const val VERTICAL = 1
+        const val GRID = 2
     }
 }

@@ -4,10 +4,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar_detail"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="351dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.facebook.drawee.view.SimpleDraweeView
         android:id="@+id/venue_detail_photo"
@@ -76,12 +81,15 @@
 
     <Button
         android:id="@+id/show_on_map_button"
-        android:layout_width="wrap_content"
+        style="@style/ButtonBorder.Accent"
+        android:layout_width="149dp"
         android:layout_height="wrap_content"
         android:layout_marginBottom="48dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
+        android:elevation="2dp"
         android:text="Show on map"
+        android:textAppearance="@style/TextAppearance.AppCompat"
         android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

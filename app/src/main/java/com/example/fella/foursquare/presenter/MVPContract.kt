@@ -21,6 +21,7 @@ interface MVPContract {
         fun loadData(lat: String, lng: String)
         fun loadData(id: String)
         fun dropData()
+        fun destroy()
     }
 
 }

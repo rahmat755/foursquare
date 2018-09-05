@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, VenuesAdapter.OnViewSelectedListener, MVPContract.AllVenuesView {
     override fun showToast(msg: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Toast.makeText(this, msg,Toast.LENGTH_SHORT).show()
     }
 
     override fun displayError(e: Throwable, func: () -> Unit) {
@@ -87,8 +87,8 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
     private var mLocation: Location? = null
     private var locationManager: LocationManager? = null
     private var mLocationRequest: LocationRequest? = null
-    var latitude: Double? = null
-    var longitude: Double? = null
+    private var latitude: Double? = null
+    private var longitude: Double? = null
     lateinit var currentLocation: Location
     private val mLayoutManager = LinearLayoutManager(this)
 
@@ -152,10 +152,14 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        venuesPresenter.destroy()
+    }
+
     override fun onLocationChanged(location: Location) {
         longitude = location.longitude
         latitude = location.latitude
-        App.state = mLayoutManager.onSaveInstanceState()
     }
 
 
@@ -169,7 +173,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         if (item.itemId == R.id.clear_cache) {
             val imagePipeline: ImagePipeline = Fresco.getImagePipeline()
             imagePipeline.clearCaches()
-//            model.dropData()
+            venuesPresenter.dropData()
             venuesAdapter.removeAllItems()
         }
         return true

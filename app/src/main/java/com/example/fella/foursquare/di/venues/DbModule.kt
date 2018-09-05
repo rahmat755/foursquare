@@ -13,7 +13,8 @@ class DbModule( mApplication: Application) {
 
     private val appDatabase: AppDatabase = Room.databaseBuilder(mApplication,
             AppDatabase::class.java, "venue-database")
-            .fallbackToDestructiveMigration().build()
+            .fallbackToDestructiveMigration()
+            .build()
 
     @ActivityScope
     @Provides

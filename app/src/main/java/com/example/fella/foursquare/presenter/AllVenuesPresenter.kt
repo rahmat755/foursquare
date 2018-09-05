@@ -8,9 +8,17 @@ import javax.inject.Inject
 import io.reactivex.disposables.Disposable
 import io.reactivex.CompletableObserver
 import io.reactivex.Completable
+import io.reactivex.disposables.CompositeDisposable
 
 
-class AllVenuesPresenter @Inject constructor(val repo: FoursquareRepo, val view: MVPContract.AllVenuesView) : MVPContract.VenuesPresenter {
+class AllVenuesPresenter @Inject constructor(private val repo: FoursquareRepo, val view: MVPContract.AllVenuesView) : MVPContract.VenuesPresenter {
+    private val compositeDisposable = CompositeDisposable()
+
+    override fun destroy() {
+        if (!compositeDisposable.isDisposed)
+            compositeDisposable.dispose()
+    }
+
     override fun dropData() {
         Completable.fromAction {
             repo.deleteCache()
@@ -31,7 +39,7 @@ class AllVenuesPresenter @Inject constructor(val repo: FoursquareRepo, val view:
     }
 
     override fun loadData(lat: String, lng: String) {
-
+        compositeDisposable.add(
         repo.getVenues(lat, lng)
                 .subscribeOn(Schedulers.io())
 
@@ -44,7 +52,7 @@ class AllVenuesPresenter @Inject constructor(val repo: FoursquareRepo, val view:
                         }
                 ) {
                     view.displayError(it) {loadData(lat, lng)}
-                }
+                })
 
     }
 

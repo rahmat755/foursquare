@@ -4,10 +4,10 @@ import android.content.Intent
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.support.design.widget.Snackbar
-import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import com.example.fella.foursquare.App
 import com.example.fella.foursquare.R
 import com.example.fella.foursquare.db.VenueItem
@@ -25,16 +25,22 @@ import com.stfalcon.frescoimageviewer.ImageViewer
 
 
 class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
+    private lateinit var venueId: String
+    @Inject
+    lateinit var presenter: DetailVenuesPresenter
+
     override fun displayData(venue: VenueItem) {
         venue_detail_address.text = venue.address
         venue_detail_name.text = venue.name
         venue_datail_rating.text = venue.tips
+        venue_detail_photo.hierarchy.setFailureImage(R.drawable.ic_baseline_report_problem_24px)
         venue_detail_photo.setImageURI(venue.bestPhoto)
-        venue_detail_photo.setOnClickListener { view ->
-            ImageViewer.Builder(view.context, venue.photos)
-                    .setStartPosition(0)
-                    .show()
-        }
+        if (venue.photos != null)
+            venue_detail_photo.setOnClickListener { view ->
+                ImageViewer.Builder(view.context, venue.photos)
+                        .setStartPosition(0)
+                        .show()
+            }
         show_on_map_button.setOnClickListener {
             val intent = Intent(this, MapsActivity::class.java).apply {
                 putExtra("lat", venue.lat.toString())
@@ -51,7 +57,7 @@ class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
     }
 
     override fun showToast(msg: String) {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
     override fun showProgressBar(flag: Boolean) {
@@ -62,23 +68,25 @@ class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
         }
     }
 
-    lateinit var venueId: String
-    @Inject
-    lateinit var presenter: DetailVenuesPresenter
-
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu, menu)
         return true
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        presenter.destroy()
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.clear_cache) {
-            val imagePipeline : ImagePipeline = Fresco.getImagePipeline()
+            val imagePipeline: ImagePipeline = Fresco.getImagePipeline()
             imagePipeline.clearCaches()
             presenter.dropData()
         }
         return true
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.detail_activity)
@@ -90,7 +98,6 @@ class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
                 .build()
                 .inject(this)
         venueId = intent.getStringExtra("venueId")
-        Log.d("id", venueId)
 
         if (this.isNetworkAvailable())
             presenter.loadData(venueId)

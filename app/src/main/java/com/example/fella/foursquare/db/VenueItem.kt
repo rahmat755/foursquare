@@ -23,7 +23,7 @@ data class VenueItem(
         @ColumnInfo(name = "bestPhoto")
         var bestPhoto: String?,
         @ColumnInfo(name = "icon")
-        var icon: String,
+        var icon: String?,
         @ColumnInfo(name = "tips")
         var tips: String?
 )
