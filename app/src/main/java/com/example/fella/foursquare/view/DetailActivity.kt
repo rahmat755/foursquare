@@ -16,6 +16,8 @@ import com.example.fella.foursquare.di.venues.detailvenues.DaggerDetailVenuesCom
 import com.example.fella.foursquare.di.venues.detailvenues.DetailVenueModule
 import com.example.fella.foursquare.presenter.DetailVenuesPresenter
 import com.example.fella.foursquare.presenter.MVPContract
+import com.example.fella.foursquare.util.FROM_API
+import com.example.fella.foursquare.util.FROM_DB
 import com.example.fella.foursquare.util.isNetworkAvailable
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipeline
@@ -99,6 +101,10 @@ class DetailActivity : AppCompatActivity(), MVPContract.DetailVenuesView {
                 .build()
                 .inject(this)
         venueId = intent.getStringExtra("venueId")
-        presenter.loadData(venueId)
+        if (this.isNetworkAvailable())
+            presenter.loadData(venueId, FROM_API)
+        else
+            presenter.loadData(venueId, FROM_DB)
+
     }
 }

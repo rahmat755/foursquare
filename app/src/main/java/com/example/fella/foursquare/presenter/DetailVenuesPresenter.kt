@@ -1,6 +1,8 @@
 package com.example.fella.foursquare.presenter
 
 import com.example.fella.foursquare.model.repository.FoursquareRepo
+import com.example.fella.foursquare.util.FROM_API
+import com.example.fella.foursquare.util.FROM_DB
 import io.reactivex.Completable
 import io.reactivex.CompletableObserver
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -17,23 +19,39 @@ class DetailVenuesPresenter @Inject constructor(private val repo: FoursquareRepo
             compositeDisposable.dispose()
     }
 
-    override fun loadData(lat: String, lng: String) {
+    override fun loadData(lat: String, lng: String, sourceType: Int) {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 
-    override fun loadData(id: String) {
+    override fun loadData(id: String, sourceType: Int) {
         view.showProgressBar(true)
-        compositeDisposable.add(repo.getVenueDetail(id)
-                .subscribeOn(Schedulers.io())
-                .debounce(400, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(
-                        {
-                            view.displayData(it)
-                            view.showProgressBar(false)
-                        }
-                ) {
-                    view.displayError(it) { loadData(id) }
+        compositeDisposable.add(
+                when(sourceType){
+                    FROM_API->{repo.getVenueDetail(id)
+                            .subscribeOn(Schedulers.io())
+                            .debounce(400, TimeUnit.MILLISECONDS, AndroidSchedulers.mainThread())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    {
+                                        view.displayData(it)
+                                        view.showProgressBar(false)
+                                    }
+                            ) {
+                                view.displayError(it) { loadData(id, sourceType) }
+                            }}
+                    FROM_DB->{repo.getVenueDetailFromDb(id).subscribeOn(Schedulers.io())
+                            .observeOn(AndroidSchedulers.mainThread())
+                            .subscribe(
+                                    {
+                                        view.displayData(it)
+                                        view.showProgressBar(false)
+                                    }
+                            ) {
+                                view.displayError(it) { loadData(id, sourceType) }
+                            }}
+                    else -> {
+                        return
+                    }
                 })
     }
 

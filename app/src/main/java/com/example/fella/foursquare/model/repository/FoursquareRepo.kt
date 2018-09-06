@@ -51,8 +51,6 @@ class FoursquareRepo @Inject constructor(val api: FoursquareApi, val dao: VenueD
                 getVenueDetailFromDb(venueId),
                 getVenueDetailFromApi(venueId)
         )
-
-
     }
 
     fun getVenues(lat: String, lng: String): Observable<List<VenueItem>> {

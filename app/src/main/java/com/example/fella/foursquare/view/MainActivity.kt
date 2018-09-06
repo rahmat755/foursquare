@@ -31,13 +31,15 @@ import android.widget.Toast
 import com.example.fella.foursquare.App
 import com.example.fella.foursquare.presenter.MVPContract
 import com.example.fella.foursquare.R
-import com.example.fella.foursquare.R.id.no_data_textview
 import com.example.fella.foursquare.db.VenueItem
 import com.example.fella.foursquare.di.venues.allvenues.AllVenuesModule
 import com.example.fella.foursquare.di.venues.allvenues.DaggerAllVenuesComponent
 import com.example.fella.foursquare.di.venues.DbModule
 import com.example.fella.foursquare.presenter.AllVenuesPresenter
 import com.example.fella.foursquare.util.EqualSpacingItemDecoration
+import com.example.fella.foursquare.util.FROM_API
+import com.example.fella.foursquare.util.FROM_DB
+import com.example.fella.foursquare.util.isNetworkAvailable
 import com.facebook.drawee.backends.pipeline.Fresco
 import com.facebook.imagepipeline.core.ImagePipeline
 
@@ -47,7 +49,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener,
         LocationListener, VenuesAdapter.OnViewSelectedListener, MVPContract.AllVenuesView {
     override fun showToast(msg: String) {
-        Toast.makeText(this, msg,Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
     }
 
     override fun displayError(e: Throwable, func: () -> Unit) {
@@ -55,10 +57,6 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 .setAction("Повторить попытку") { func() }.show()
         if (swipe_refresh_layout.isRefreshing)
             swipe_refresh_layout.isRefreshing = false
-    }
-
-    override fun displayNoDataError() {
-        no_data_textview.visibility = View.VISIBLE
     }
 
     override fun displayData(venueList: ArrayList<VenueItem>) {
@@ -71,8 +69,9 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
         if (flag)
             progressBar.visibility = View.VISIBLE
         else {
-            if (swipe_refresh_layout.isRefreshing){
-                swipe_refresh_layout.isRefreshing = false}
+            if (swipe_refresh_layout.isRefreshing) {
+                swipe_refresh_layout.isRefreshing = false
+            }
             progressBar.visibility = View.GONE
         }
     }
@@ -198,7 +197,7 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
                 .build()
         currentLocation = Location("")
 
-        venuesAdapter = VenuesAdapter( this)
+        venuesAdapter = VenuesAdapter(this)
         DaggerAllVenuesComponent.builder()
                 .appComponent(App.appComponent)
                 .dbModule(DbModule(application))
@@ -215,27 +214,31 @@ class MainActivity : AppCompatActivity(), GoogleApiClient.ConnectionCallbacks,
             getVenues()
         }
     }
-    private fun showGPSDisabledAlertToUser(){
+
+    private fun showGPSDisabledAlertToUser() {
         val builder = AlertDialog.Builder(this@MainActivity)
         builder.setMessage("GPS is disabled in your device. Would you like to enable it?")
-        builder.setPositiveButton("Goto Settings Page To Enable GPS"){dialog, which ->
-             val callGPSSettingIntent =  Intent(
-                android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        builder.setPositiveButton("Goto Settings Page To Enable GPS") { dialog, which ->
+            val callGPSSettingIntent = Intent(
+                    android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS)
             startActivity(callGPSSettingIntent)
         }
-        builder.setNegativeButton("Cancel"){ dialog, _ ->
+        builder.setNegativeButton("Cancel") { dialog, _ ->
             dialog.cancel()
         }
         val dialog: AlertDialog = builder.create()
         dialog.show()
-}
+    }
+
     private fun getVenues() {
-        no_data_textview.visibility = View.GONE
         currentLocation.longitude = longitude!!
         currentLocation.latitude = latitude!!
-        venuesPresenter.loadData(latitude.toString(), longitude.toString())
-        venuesAdapter.notifyDataSetChanged()
-}
+        if (this.isNetworkAvailable())
+            venuesPresenter.loadData(latitude.toString(), longitude.toString(), FROM_API)
+        else
+            venuesPresenter.loadData(latitude.toString(), longitude.toString(), FROM_DB)
+
+    }
 
     override fun onBackPressed() {
         super.onBackPressed()
