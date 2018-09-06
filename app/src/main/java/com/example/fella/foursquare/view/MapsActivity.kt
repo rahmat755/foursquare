@@ -34,7 +34,7 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mMap = googleMap
         val venueLoc = LatLng(lat.toDouble(), lng.toDouble())
         mMap.addMarker(MarkerOptions().position(venueLoc).title(name))
-        val yourLocation = CameraUpdateFactory.newLatLngZoom(venueLoc, 11.0f)
+        val yourLocation = CameraUpdateFactory.newLatLngZoom(venueLoc, 17.0f)
         mMap.animateCamera(yourLocation)
     }
 }
